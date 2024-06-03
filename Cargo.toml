@@ -1,0 +1,8 @@
+[package]
+name = "DiskSim" # the name of the package
+version = "0.1.0"    # the current version, obeying semver
+edition = "2021"
+
+[[bin]]
+name = "DiskSim"
+path = "src/DiskSim.rs"
