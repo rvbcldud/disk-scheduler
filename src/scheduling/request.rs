@@ -3,16 +3,16 @@ use std::fmt::{self, Display};
 
 pub struct Request {
     // Cylinder number location
-    pub location: u8,
+    pub location: u16,
     // Only applicable for FCFS
-    pub arrival: u8,
+    pub arrival: u16,
 }
 
 impl Request {
-    pub fn new() -> Self{
+    pub fn new(loc: u16, arr: u16) -> Self{
         Self{
-            location: 0,
-            arrival: 0,
+            location: loc,
+            arrival: arr,
         }
     }
 }

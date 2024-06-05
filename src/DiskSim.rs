@@ -10,7 +10,17 @@ fn main() {
 
     let mut this: FCFS = FCFS::new();
 
-    this.requests.push(Request::new());
+    this.add(Request::new(7,5));
+    this.add(Request::new(5,1));
+    this.add(Request::new(2,2));
 
-    println!("{}", this.requests[0]);
+    // let mut next: Request;
+    // TODO: Change to enumerate
+    for _ in 0..this.length() {
+        let next: Request = match this.next_request() {
+            Some(next) => next,
+            None => panic!("bro!"),
+        };
+        println!("{}", next);
+    }
 }

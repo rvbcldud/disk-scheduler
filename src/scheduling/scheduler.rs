@@ -1,4 +1,5 @@
-use std::fmt::Error;
+use crate::Request;
+
 pub trait Scheduler {
-    fn next_request() -> Result<(), Error>;
+    fn next_request(&mut self) -> Option<Request>;
 }
