@@ -1,5 +1,5 @@
 use crate::{
-    Request, Scheduler,
+    Request, Scheduler, VecOwner, Direction,
 };
 
 use std::fmt::Error;
@@ -7,30 +7,43 @@ use std::result::*;
 
 pub struct FCFS {
     requests: Vec<Request>,
+    current: u16,
+    direction: Direction,
+    movements: u16,
+    reversals: u16,
 }
 
 impl FCFS {
-    pub fn new() -> Self{
+    pub fn new(current: u16) -> Self{
         Self {
             requests: Vec::new(),
+            current,
+            direction: Direction::DEFAULT,
+            movements: 0,
+            reversals: 0,
         }
     }
-    pub fn length(&self) -> usize{
-        self.requests.len()
+    pub fn with_direction(mut self, direction: &str) -> Self {
+        let dir = match direction {
+            "H" => Direction::HIGH,
+            "L" => Direction::LOW,
+            _ => panic!("Invalid direction!")
+        };
+
+        self.direction = dir;
+        self
     }
-    pub fn remove(&mut self, index: usize) {
-        self.requests.remove(index);
-    }
-    pub fn add(&mut self, req: Request) {
-        self.requests.push(req);
+}
+
+impl VecOwner for FCFS {
+    fn get_vec(&mut self) -> &mut Vec<Request> {
+        &mut self.requests
     }
 }
 
 impl Scheduler for FCFS {
     fn next_request(&mut self) -> Option<Request> {
-        // TODO: implement finding next request
         let mut min_arrival = u16::MAX;
-        // let mut request: Option<&Request> = None;
         let mut index: Option<usize> = None;
         for (i, request) in self.requests.iter().enumerate() {
             if request.arrival < min_arrival {
@@ -47,9 +60,30 @@ impl Scheduler for FCFS {
         //     });
             
         if !index.is_none() {
+            let request = &self.requests[index.unwrap()];
+
+            // If moved lower and going higher
+            if self.current > request.location
+                && self.direction == Direction::HIGH {
+                self.reversals += 1;
+                self.direction = Direction::LOW;
+            // If moved higher and going lower
+            } else if self.current < request.location 
+                && self.direction == Direction::LOW {
+                self.reversals += 1;
+                self.direction = Direction::HIGH;
+            }
+
+            self.movements += u16::abs_diff(request.location, self.current) + 1;
+            self.current = request.location;
+
             Some(self.requests.remove(index.unwrap()))
         } else {
             None
         }
+    }
+
+    fn print_info(&self) {
+        println!("FCFS {} {}", self.reversals, self.movements);
     }
 }

@@ -1,44 +1,28 @@
 use crate::{
-    Request, Scheduler, VecOwner, Direction,
+    Request, Scheduler, VecOwner,
 };
 
-pub struct SSTF {
+pub struct SCAN {
     requests: Vec<Request>,
     current: u16,
-    direction: Direction,
-    movements: u16,
-    reversals: u16,
 }
 
-impl SSTF {
+impl SCAN {
     pub fn new(current: u16) -> Self{
         Self {
             requests: Vec::new(),
             current,
-            direction: Direction::DEFAULT,
-            movements: 0,
-            reversals: 0,
         }
-    }
-    pub fn with_direction(mut self, direction: &str) -> Self {
-        let dir = match direction {
-            "H" => Direction::HIGH,
-            "L" => Direction::LOW,
-            _ => panic!("Invalid direction!")
-        };
-
-        self.direction = dir;
-        self
     }
 }
 
-impl VecOwner for SSTF {
+impl VecOwner for SCAN {
     fn get_vec(&mut self) -> &mut Vec<Request> {
         &mut self.requests
     }
 }
 
-impl Scheduler for SSTF {
+impl Scheduler for SCAN {
     fn next_request(&mut self) -> Option<Request> {
         let mut min_dist = u16::MAX;
         let mut index: Option<usize> = None;
@@ -58,6 +42,6 @@ impl Scheduler for SSTF {
     }
 
     fn print_info(&self) {
-        println!("SSTF {} {}", self.reversals, self.movements);
+        todo!()
     }
 }
