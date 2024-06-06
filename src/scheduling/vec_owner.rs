@@ -11,4 +11,14 @@ pub trait VecOwner {
     fn add(&mut self, req: Request) {
         self.get_vec().push(req);
     }
+    fn add_vec(&mut self, requests:&Vec<Request>) {
+        for (_, &request) in requests.iter().enumerate() {
+        // for i in 0..requests.len() {
+            self.add(request);
+        }
+
+        // for request in requests {
+        //     self.add(request);
+        // }
+    }
 }

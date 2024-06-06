@@ -8,16 +8,18 @@ use std::result::*;
 pub struct FCFS {
     requests: Vec<Request>,
     current: u16,
+    max_cylinder: u16,
     direction: Direction,
     movements: u16,
     reversals: u16,
 }
 
 impl FCFS {
-    pub fn new(current: u16) -> Self{
+    pub fn new(current: u16, max_cylinder: u16) -> Self{
         Self {
             requests: Vec::new(),
             current,
+            max_cylinder,
             direction: Direction::DEFAULT,
             movements: 0,
             reversals: 0,
@@ -52,6 +54,7 @@ impl Scheduler for FCFS {
             }
         }
 
+
         // let index = self.requests
         //     .iter()
         //     .enumerate()
@@ -60,7 +63,15 @@ impl Scheduler for FCFS {
         //     });
             
         if !index.is_none() {
+            if self.movements == 0 {
+                self.movements = 1;
+            }
+
             let request = &self.requests[index.unwrap()];
+
+            // println!("Current: {}", self.current);
+            // println!("Next: {}", request.location);
+            // println!("Directoin: {}", self.direction);
 
             // If moved lower and going higher
             if self.current > request.location
@@ -74,7 +85,7 @@ impl Scheduler for FCFS {
                 self.direction = Direction::HIGH;
             }
 
-            self.movements += u16::abs_diff(request.location, self.current) + 1;
+            self.movements += u16::abs_diff(request.location, self.current);
             self.current = request.location;
 
             Some(self.requests.remove(index.unwrap()))

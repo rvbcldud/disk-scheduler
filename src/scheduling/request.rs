@@ -1,6 +1,7 @@
 use std::fmt::{self, Display};
 
 
+#[derive(Copy, Clone)]
 pub struct Request {
     // Cylinder number location
     pub location: u16,

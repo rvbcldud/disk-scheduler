@@ -5,16 +5,18 @@ use crate::{
 pub struct SSTF {
     requests: Vec<Request>,
     current: u16,
+    max_cylinder: u16,
     direction: Direction,
     movements: u16,
     reversals: u16,
 }
 
 impl SSTF {
-    pub fn new(current: u16) -> Self{
+    pub fn new(current: u16, max_cylinder: u16) -> Self{
         Self {
             requests: Vec::new(),
             current,
+            max_cylinder,
             direction: Direction::DEFAULT,
             movements: 0,
             reversals: 0,
@@ -51,6 +53,33 @@ impl Scheduler for SSTF {
         }
 
         if !index.is_none() {
+            if self.movements == 0 {
+                self.movements = 1;
+            }
+
+            let request = &self.requests[index.unwrap()];
+
+            println!("Current: {}", self.current);
+            println!("Next: {}", request.location);
+            println!("Dist: {}", min_dist);
+            // println!("Directoin: {}", self.direction);
+
+
+            // If moved lower and going higher
+            if self.current > request.location
+                && self.direction == Direction::HIGH {
+                self.reversals += 1;
+                self.direction = Direction::LOW;
+            // If moved higher and going lower
+            } else if self.current < request.location 
+                && self.direction == Direction::LOW {
+                self.reversals += 1;
+                self.direction = Direction::HIGH;
+            }
+
+            self.movements += min_dist;
+            self.current = request.location;
+
             Some(self.requests.remove(index.unwrap()))
         } else {
             None
