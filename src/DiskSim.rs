@@ -9,6 +9,7 @@ pub use self::scheduling::{
     vec_owner::VecOwner
 };
 
+use core::num;
 use std::{env, process::exit};
 use rand::Rng;
 
@@ -18,12 +19,12 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     dbg!(&mut args);
 
-    if args.len() != 2 || args.len() == 3 {
+    if args.len() == 3 {
         panic!("Incorrect argument amount");
     }
     
-    let mut start: u16;
-    let mut direction: &str;
+    let mut start: u16 = 0;
+    let mut direction: &str = "H";
     let mut requests: Vec<Request> = Vec::new();
 
     // Check if first argument is R
@@ -31,20 +32,25 @@ fn main() {
         // Generate random values
         println!("Random!");
     } else {
+    // Otherwise parse:
+    //  1. Starting location of disk head
+    //  2. Starting direction
+    //  3. Either R# or series of requests
         start = match args[1].parse() {
             Ok(number) => number,
             Err(e) => panic!("{}", e),
         };
 
         direction = match args[2].as_str() {
-            "H" => args[3].as_str(),
-            "L" => args[3].as_str(),
+            "H" => args[2].as_str(),
+            "L" => args[2].as_str(),
             _ => panic!("Wrong direction!")
         };
 
         if args[3].starts_with("R") {
-            args[3].remove(0);
-            let num_req: u16 = match args[3].parse() {
+            // args[3].remove(0);
+            let num_rand = args[3].strip_prefix("R").unwrap();
+            let num_req: u16 = match num_rand.parse() {
                 Ok(num_req) => num_req,
                 Err(e) => panic!("{}", e)
             };
@@ -64,15 +70,27 @@ fn main() {
                 requests.push(Request::new(location, (i-3) as u16));
             }
         }
-
-
-
     }
 
-    // Otherwise parse:
-    //  1. Starting location of disk head
-    //  2. Starting direction
-    //  3. Either R# or series of requests
+    let mut f = FCFS::new(start, 9999)
+        .with_direction(direction);
+
+    f.add_vec(&requests);
+
+    for _ in 0..f.length() {
+        let next: Request = match f.next_request() {
+            Some(next) => next,
+            None => panic!("bro!"),
+        };
+        println!("{}", next);
+    }
+
+    f.print_info();
+
+
+
+
+
 
 
     // TODO: Create each scheduler and add the requests to them
