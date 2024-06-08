@@ -40,6 +40,21 @@ impl SCAN {
         self.circular = true;
         self
     }
+
+    pub fn simulate_scheduling(&mut self) {
+        if self.circular {
+            print!("C-");
+        }
+        print!("SCAN ");
+        while self.length() != 0 {
+            let next: Request = match self.next_request() {
+                Some(next) => next,
+                None => continue,
+            };
+            print!("{} ", next.location);
+        }
+        println!();
+    }
 }
 
 impl VecOwner for SCAN {
@@ -80,26 +95,26 @@ impl Scheduler for SCAN {
         }
 
 
-
-        if !index.is_none() {
             if self.movements == 0 {
                 self.movements = 1;
             }
 
+        if !index.is_none() {
+
             let request = &self.requests[index.unwrap()];
             self.movements += min_dist;
-            println!("()Next: {}", request.location);
+            // println!("()Next: {}", request.location);
             self.current = request.location;
 
             Some(self.requests.remove(index.unwrap()))
         } else {
-            println!("Done with direction: {}", self.direction);
+            // println!("Done with direction: {}", self.direction);
             match self.direction {
                 // Set direction to be low
                 Direction::HIGH => {
-                println!("Current: {}", self.current);
-                println!("Next: {}", self.max_cylinder);
-                println!("Dist: {}", u16::abs_diff(self.current, self.max_cylinder));
+                // println!("Current: {}", self.current);
+                // println!("Next: {}", self.max_cylinder);
+                // println!("Dist: {}", u16::abs_diff(self.current, self.max_cylinder));
                     self.direction = Direction::LOW;
                     self.movements += u16::abs_diff(self.current, self.max_cylinder);
                     self.reversals += 1;
@@ -121,6 +136,9 @@ impl Scheduler for SCAN {
     }
 
     fn print_info(&self) {
+        if self.circular {
+            print!("C-");
+        }
         println!("SCAN {} {}", self.reversals, self.movements);
     }
 }

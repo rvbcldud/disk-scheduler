@@ -32,6 +32,17 @@ impl SSTF {
         self.direction = dir;
         self
     }
+    pub fn simulate_scheduling(&mut self) {
+        print!("SSTF ");
+        while self.length() != 0 {
+            let next: Request = match self.next_request() {
+                Some(next) => next,
+                None => panic!("done"),
+            };
+            print!("{} ", next.location);
+        }
+        println!();
+    }
 }
 
 impl VecOwner for SSTF {
@@ -59,9 +70,9 @@ impl Scheduler for SSTF {
 
             let request = &self.requests[index.unwrap()];
 
-            println!("Current: {}", self.current);
-            println!("Next: {}", request.location);
-            println!("Dist: {}", min_dist);
+            // println!("Current: {}", self.current);
+            // println!("Next: {}", request.location);
+            // println!("Dist: {}", min_dist);
             // println!("Directoin: {}", self.direction);
 
 

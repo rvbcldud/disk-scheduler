@@ -35,6 +35,17 @@ impl FCFS {
         self.direction = dir;
         self
     }
+    pub fn simulate_scheduling(&mut self) {
+        print!("FCFS ");
+        while self.length() != 0 {
+            let next: Request = match self.next_request() {
+                Some(next) => next,
+                None => panic!("done"),
+            };
+            print!("{} ", next.location);
+        }
+        println!();
+    }
 }
 
 impl VecOwner for FCFS {

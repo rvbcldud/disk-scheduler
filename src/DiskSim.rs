@@ -13,6 +13,9 @@ use core::num;
 use std::{env, process::exit};
 use rand::Rng;
 
+// The number of cylinders in this simulation
+const CYLINDERS: u16 = 9999;
+
 fn main() {
     let mut rng = rand::thread_rng();
 
@@ -56,7 +59,7 @@ fn main() {
             };
 
             for i in 0..num_req {
-                let location: u16 = rng.gen_range(0..10000);
+                let location: u16 = rng.gen_range(0..(CYLINDERS+1));
                 requests.push(Request::new(location, i as u16));
 
             }
@@ -72,25 +75,71 @@ fn main() {
         }
     }
 
-    let mut f = FCFS::new(start, 9999)
+    println!("== Service History ==");
+
+    let mut first = FCFS::new(start, CYLINDERS)
         .with_direction(direction);
 
-    f.add_vec(&requests);
+    first.add_vec(&requests);
 
-    for _ in 0..f.length() {
-        let next: Request = match f.next_request() {
-            Some(next) => next,
-            None => panic!("bro!"),
-        };
-        println!("{}", next);
-    }
+    first.simulate_scheduling();
 
-    f.print_info();
+    let mut short = SSTF::new(start, CYLINDERS)
+        .with_direction(direction);
+
+    short.add_vec(&requests);
+
+    short.simulate_scheduling();
+
+    let mut scan = SCAN::new(start, CYLINDERS)
+        .with_direction(direction);
+
+    scan.add_vec(&requests);
+
+    scan.remove_duplicates();
+
+    scan.simulate_scheduling();
+
+    let mut c_scan = SCAN::new(start, CYLINDERS)
+        .with_direction(direction)
+        .is_circular();
+
+    c_scan.add_vec(&requests);
+
+    c_scan.remove_duplicates();
+
+    c_scan.simulate_scheduling();
+
+    let mut look = LOOK::new(start, CYLINDERS)
+        .with_direction(direction);
+
+    look.add_vec(&requests);
+
+    look.remove_duplicates();
+
+    look.simulate_scheduling();
+
+    let mut c_look = LOOK::new(start, CYLINDERS)
+        .with_direction(direction)
+        .is_circular();
+
+    c_look.add_vec(&requests);
+
+    c_look.remove_duplicates();
+
+    c_look.simulate_scheduling();
 
 
 
 
+    println!("== Service Stats ==");
 
+    first.print_info();
+    short.print_info();
+    scan.print_info();
+    c_scan.print_info();
+    look.print_info();
+    c_look.print_info();
 
 
     // TODO: Create each scheduler and add the requests to them

@@ -57,10 +57,25 @@ impl LOOK {
             }
         }
 
-        println!("low: {}, high: {}", low_pole, high_pole);
+        // println!("low: {}, high: {}", low_pole, high_pole);
 
         self.low_pole = low_pole;
         self.high_pole = high_pole;
+    }
+
+    pub fn simulate_scheduling(&mut self) {
+        if self.circular {
+            print!("C-");
+        }
+        print!("LOOK ");
+        while self.length() != 0 {
+            let next: Request = match self.next_request() {
+                Some(next) => next,
+                None => continue,
+            };
+            print!("{} ", next.location);
+        }
+        println!();
     }
 }
 
@@ -103,11 +118,11 @@ impl Scheduler for LOOK {
         }
 
 
-        for i in 0..self.length() {
-            println!("el: {}", self.requests[i]);
-        }
+        // for i in 0..self.length() {
+        //     println!("el: {}", self.requests[i]);
+        // }
 
-        println!("dir: {}", self.direction);
+        // println!("dir: {}", self.direction);
         if !index.is_none() {
             if self.movements == 0 {
                 self.movements = 1;
@@ -116,23 +131,27 @@ impl Scheduler for LOOK {
             let request = &self.requests[index.unwrap()];
 
             self.movements += min_dist;
-            println!("()Next: {}", request.location);
+            // println!("()Next: {}", request.location);
             self.current = request.location;
 
             let mut dir_change: bool = false;
 
             match self.direction {
                 Direction::HIGH => {
-                    if self.current == self.high_pole {
-                        println!("dir change");
+                    if self.current == self.high_pole  && self.requests.len() > 1 {
+            // println!("len: {}", self.requests.len());
+                        // println!("dir change");
                         dir_change = true;
+                        self.reversals += 1;
                         self.direction = Direction::LOW;
                     }
                 },
                 Direction::LOW => {
-                    if self.current == self.low_pole {
+                    if self.current == self.low_pole && self.requests.len() > 1 {
+            // println!("len: {}", self.requests.len());
                         dir_change = true;
-                        println!("dir change");
+                        // println!("dir change");
+                        self.reversals += 1;
                         self.direction = Direction::HIGH;
                     }
                 },
@@ -149,6 +168,11 @@ impl Scheduler for LOOK {
             //     None
 
             } else {
+                // println!("servicing => {}", self.requests[index.unwrap()]);
+                if self.length() == 1 && self.direction == Direction::LOW && self.circular {
+                    // println!("bro");
+                    self.reversals += 1;
+                }
                 Some(self.requests.remove(index.unwrap()))
 
             }
@@ -159,10 +183,23 @@ impl Scheduler for LOOK {
             // }
 
         } else {
-            self.direction = Direction::LOW;
-            println!("cur: {}", self.current);
-            println!("mvmnts: {}", self.movements);
-            panic!("done");
+            // println!("reverse!");
+            match self.direction {
+                Direction::HIGH => {
+                    self.current = self.max_cylinder;
+                    self.direction = Direction::LOW;
+                },
+                Direction::LOW => {
+                    self.current = 0;
+                    self.direction = Direction::HIGH;
+                },
+                Direction::DEFAULT => panic!("SCAN needs direction")
+            }
+            // println!("ye");
+            self.reversals += 1;
+            // println!("cur: {}", self.current);
+            // println!("mvmnts: {}", self.movements);
+            // panic!("done");
             // println!("Done with direction: {}", self.direction);
             // match self.direction {
             //     // Set direction to be low
@@ -198,6 +235,9 @@ impl Scheduler for LOOK {
     }
 
     fn print_info(&self) {
+        if self.circular {
+            print!("C-");
+        }
         println!("LOOK {} {}", self.reversals, self.movements);
     }
 }
