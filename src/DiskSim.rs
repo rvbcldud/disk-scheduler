@@ -9,47 +9,55 @@ pub use self::scheduling::{
     vec_owner::VecOwner
 };
 
-use core::num;
-use std::{env, process::exit};
+use std::env;
 use rand::Rng;
+use rand::seq::SliceRandom;
 
-// The number of cylinders in this simulation
+// The number of cylinders to be used in the simulation
 const CYLINDERS: u16 = 9999;
 
 fn main() {
     let mut rng = rand::thread_rng();
 
-    let mut args: Vec<String> = env::args().collect();
-    dbg!(&mut args);
+    let args: Vec<String> = env::args().collect();
 
     if args.len() == 3 {
         panic!("Incorrect argument amount");
     }
     
-    let mut start: u16 = 0;
-    let mut direction: &str = "H";
+    let start: u16;
+    let direction: &str;
     let mut requests: Vec<Request> = Vec::new();
 
     // Check if first argument is R
     if args[1] == "R" {
-        // Generate random values
-        println!("Random!");
+        // Generate start
+        start = rng.gen_range(0..=CYLINDERS);
+
+        // Generate direction
+        direction = ["L", "H"].choose(&mut rng).unwrap();
+
+        // Generate requests
+        for i in 0..100 {
+            let location: u16 = rng.gen_range(0..(CYLINDERS+1));
+            requests.push(Request::new(location, i as u16));
+        }
     } else {
-    // Otherwise parse:
-    //  1. Starting location of disk head
-    //  2. Starting direction
-    //  3. Either R# or series of requests
+        // Otherwise parse:
+        //  1. Starting location of disk head
         start = match args[1].parse() {
             Ok(number) => number,
             Err(e) => panic!("{}", e),
         };
 
+        //  2. Starting direction
         direction = match args[2].as_str() {
             "H" => args[2].as_str(),
             "L" => args[2].as_str(),
             _ => panic!("Wrong direction!")
         };
 
+        //  3. Either R# or series of requests
         if args[3].starts_with("R") {
             // args[3].remove(0);
             let num_rand = args[3].strip_prefix("R").unwrap();
@@ -61,9 +69,9 @@ fn main() {
             for i in 0..num_req {
                 let location: u16 = rng.gen_range(0..(CYLINDERS+1));
                 requests.push(Request::new(location, i as u16));
-
             }
         } else {
+            // Parse through each request given
             for i in 3..args.len() {
                 let location: u16 =  match args[i].parse() {
                     Ok(location) => location,
@@ -77,6 +85,8 @@ fn main() {
 
     println!("== Service History ==");
 
+    /* == Simulate First Come First Serve == */
+
     let mut first = FCFS::new(start, CYLINDERS)
         .with_direction(direction);
 
@@ -84,12 +94,16 @@ fn main() {
 
     first.simulate_scheduling();
 
+    /* == Simulate Shortest Seek Time First == */
+
     let mut short = SSTF::new(start, CYLINDERS)
         .with_direction(direction);
 
     short.add_vec(&requests);
 
     short.simulate_scheduling();
+
+    /* == Simulate SCAN (Service back and forth) == */
 
     let mut scan = SCAN::new(start, CYLINDERS)
         .with_direction(direction);
@@ -99,6 +113,8 @@ fn main() {
     scan.remove_duplicates();
 
     scan.simulate_scheduling();
+
+    /* == Simulate C-SCAN (Service back and forth, only servicing going HIGH) == */
 
     let mut c_scan = SCAN::new(start, CYLINDERS)
         .with_direction(direction)
@@ -110,6 +126,8 @@ fn main() {
 
     c_scan.simulate_scheduling();
 
+    /* == Simulate LOOK (Service going between lowest and highest request) == */
+
     let mut look = LOOK::new(start, CYLINDERS)
         .with_direction(direction);
 
@@ -118,6 +136,8 @@ fn main() {
     look.remove_duplicates();
 
     look.simulate_scheduling();
+
+    /* == Simulate C-LOOK (Service going between lowest and highest request, only servicing going HIGH) == */
 
     let mut c_look = LOOK::new(start, CYLINDERS)
         .with_direction(direction)
@@ -130,8 +150,6 @@ fn main() {
     c_look.simulate_scheduling();
 
 
-
-
     println!("== Service Stats ==");
 
     first.print_info();
@@ -139,137 +157,5 @@ fn main() {
     scan.print_info();
     c_scan.print_info();
     look.print_info();
-    c_look.print_info();
-
-
-    // TODO: Create each scheduler and add the requests to them
-
-    exit(0);
-
-
-
-
-
-
-
-
-    let mut first_come: FCFS = FCFS::new(3, 5)
-        .with_direction("H");
-
-    first_come.add(Request::new(4,0));
-    first_come.add(Request::new(1,1));
-    first_come.add(Request::new(5,2));
-    first_come.add(Request::new(2,3));
-
-    // let mut next: Request;
-    // TODO: Change to enumerate
-    for _ in 0..first_come.length() {
-        let next: Request = match first_come.next_request() {
-            Some(next) => next,
-            None => panic!("bro!"),
-        };
-        println!("{}", next);
-    }
-
-    first_come.print_info();
-
-    println!();
-
-    let mut shortest: SSTF = SSTF::new(3, 5)
-        .with_direction("H");
-
-    shortest.add(Request::new(4,0));
-    shortest.add(Request::new(1,0));
-    shortest.add(Request::new(5,0));
-    shortest.add(Request::new(2,0));
-
-    for _ in 0..shortest.length() {
-        let next: Request = match shortest.next_request() {
-            Some(next) => next,
-            None => panic!("bro!"),
-        };
-        println!("{}", next);
-    }
-
-    shortest.print_info();
-
-
-    let mut scan: SCAN = SCAN::new(3, 5)
-        .with_direction("H");
-
-
-    scan.add(Request::new(4,0));
-    scan.add(Request::new(1,0));
-    scan.add(Request::new(5,0));
-    scan.add(Request::new(2,0));
-
-    while scan.length() != 0 {
-        let next: Request = match scan.next_request() {
-            Some(next) => next,
-            None => continue,
-        };
-        println!("{}", next);
-    }
-
-    scan.print_info();
-
-    let mut c_scan: SCAN = SCAN::new(3, 5)
-        .with_direction("H")
-        .is_circular();
-
-
-    c_scan.add(Request::new(4,0));
-    c_scan.add(Request::new(1,0));
-    c_scan.add(Request::new(5,0));
-    c_scan.add(Request::new(2,0));
-
-    while c_scan.length() != 0 {
-        let next: Request = match c_scan.next_request() {
-            Some(next) => next,
-            None => continue,
-        };
-        println!("{}", next);
-    }
-
-    c_scan.print_info();
-
-
-    let mut look: LOOK = LOOK::new(3, 5)
-        .with_direction("H");
-
-
-    look.add(Request::new(4,0));
-    look.add(Request::new(1,0));
-    look.add(Request::new(5,0));
-    look.add(Request::new(2,0));
-
-    while look.length() != 0 {
-        let next: Request = match look.next_request() {
-            Some(next) => next,
-            None => continue,
-        };
-        println!("{}", next);
-    }
-
-    look.print_info();
-
-    let mut c_look: LOOK = LOOK::new(3, 5)
-        .with_direction("H")
-        .is_circular();
-
-
-    c_look.add(Request::new(4,0));
-    c_look.add(Request::new(1,0));
-    c_look.add(Request::new(5,0));
-    c_look.add(Request::new(2,0));
-
-    while c_look.length() != 0 {
-        let next: Request = match c_look.next_request() {
-            Some(next) => next,
-            None => continue,
-        };
-        println!("{}", next);
-    }
-
     c_look.print_info();
 }

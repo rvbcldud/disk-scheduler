@@ -2,15 +2,13 @@ use crate::{
     Request, Scheduler, VecOwner, Direction,
 };
 
-use std::fmt::Error;
-use std::result::*;
 
 pub struct FCFS {
     requests: Vec<Request>,
     current: u16,
-    max_cylinder: u16,
+    _max_cylinder: u16,
     direction: Direction,
-    movements: u16,
+    movements: u64,
     reversals: u16,
 }
 
@@ -19,7 +17,7 @@ impl FCFS {
         Self {
             requests: Vec::new(),
             current,
-            max_cylinder,
+            _max_cylinder: max_cylinder,
             direction: Direction::DEFAULT,
             movements: 0,
             reversals: 0,
@@ -58,6 +56,8 @@ impl Scheduler for FCFS {
     fn next_request(&mut self) -> Option<Request> {
         let mut min_arrival = u16::MAX;
         let mut index: Option<usize> = None;
+
+        // Get the request with the next closest arrival
         for (i, request) in self.requests.iter().enumerate() {
             if request.arrival < min_arrival {
                 min_arrival = request.arrival;
@@ -65,40 +65,32 @@ impl Scheduler for FCFS {
             }
         }
 
-
-        // let index = self.requests
-        //     .iter()
-        //     .enumerate()
-        //     .fold(u16::MAX, |min_arr, (i, request)| {
-        //         request.arrival.min(min_arr)
-        //     });
+        // Count the first movement done
+        if self.movements == 0 {
+            self.movements = 1;
+        }
             
         if !index.is_none() {
-            if self.movements == 0 {
-                self.movements = 1;
-            }
 
             let request = &self.requests[index.unwrap()];
 
-            // println!("Current: {}", self.current);
-            // println!("Next: {}", request.location);
-            // println!("Directoin: {}", self.direction);
-
-            // If moved lower and going higher
+            // If next request is in opposite direction, change accordingly
             if self.current > request.location
                 && self.direction == Direction::HIGH {
                 self.reversals += 1;
                 self.direction = Direction::LOW;
-            // If moved higher and going lower
             } else if self.current < request.location 
                 && self.direction == Direction::LOW {
                 self.reversals += 1;
                 self.direction = Direction::HIGH;
             }
 
-            self.movements += u16::abs_diff(request.location, self.current);
+            println!("loc: {} cur: {}", request.location, self.current);
+
+            self.movements += u16::abs_diff(request.location, self.current) as u64;
             self.current = request.location;
 
+            // Service the request
             Some(self.requests.remove(index.unwrap()))
         } else {
             None
