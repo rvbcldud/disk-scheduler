@@ -1,6 +1,6 @@
 # Disk Scheduling Simulator
 
-_This program was written for my final assignment in my operating systems class at university_
+_This program was written for my undergraduate operating systems class_
 
 Simulates the execution of several disk scheduling algorithms:
 - First Come First Server (FCFS)
