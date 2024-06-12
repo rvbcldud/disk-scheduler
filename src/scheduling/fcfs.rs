@@ -85,8 +85,6 @@ impl Scheduler for FCFS {
                 self.direction = Direction::HIGH;
             }
 
-            println!("loc: {} cur: {}", request.location, self.current);
-
             self.movements += u16::abs_diff(request.location, self.current) as u64;
             self.current = request.location;
 
