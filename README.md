@@ -3,7 +3,7 @@
 _This program was written for my undergraduate operating systems class_
 
 Simulates the execution of several disk scheduling algorithms:
-- First Come First Server (FCFS)
+- First Come First Serve (FCFS)
 - Shortest Seek Time First (SSTF)
 - SCAN (Elevator Algorithm)
   - With its circular counterpart, C-SCAN
